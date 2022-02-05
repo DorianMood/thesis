@@ -31,7 +31,7 @@ from realesrgan import RealESRGANer
 from basicsr.archs.rrdbnet_arch import RRDBNet
 
 # go fast boi!!
-torch.backends.cudnn.benchmark = True
+#torch.backends.cudnn.benchmark = True
 
 def create_model(args, device, logger, storage, storage_test):
 
@@ -107,15 +107,15 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
     # Upsample netwok
     # Upsampler
 
-    block = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64)
-    upsampler = RealESRGANer(
-        scale=4,
-        model_path='realesrgan/experiments/pretrained_models/RealESRGAN_x4plus.pth',
-        model=block,
-        tile=False,
-        tile_pad=10,
-        pre_pad=0,
-        half=True)
+    #block = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64)
+    #upsampler = RealESRGANer(
+    #    scale=4,
+    #    model_path='realesrgan/experiments/pretrained_models/RealESRGAN_x4plus.pth',
+    #    model=block,
+    #    tile=False,
+    #    tile_pad=10,
+    #    pre_pad=0,
+    #    half=True)
 
     for epoch in trange(args.n_epochs, desc='Epoch'):
 

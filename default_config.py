@@ -23,10 +23,10 @@ class Datasets(object):
     VISUAL_GENOME = 'vg'
 
 class DatasetPaths(object):
-    OPENIMAGES = 'data/openimages'
+    OPENIMAGES = 'D:/Documents/datasets/open-images'
     CITYSCAPES = ''
     JETS = ''
-    VISUAL_GENOME = '~/layout2im/datasets/vg'
+    VISUAL_GENOME = 'D:/Documents/datasets/open-images'
 
 class directories(object):
     experiments = 'experiments'
@@ -46,8 +46,8 @@ class args(object):
     multigpu = True
     # dataset = Datasets.OPENIMAGES
     # dataset_path = DatasetPaths.OPENIMAGES
-    dataset = Datasets.VISUAL_GENOME
-    dataset_path = DatasetPaths.VISUAL_GENOME
+    dataset = Datasets.OPENIMAGES
+    dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
 
     # GAN params
