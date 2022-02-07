@@ -7,3 +7,9 @@ realesrgan
 torch
 torchsummary
 torchvision
+tqdm
+tensorboard
+scipy
+autograd
+scikit-image==0.17.2
+attrdict
