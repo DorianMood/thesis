@@ -23,7 +23,7 @@ class Datasets(object):
     VISUAL_GENOME = 'vg'
 
 class DatasetPaths(object):
-    OPENIMAGES = 'D:/Documents/datasets/open-images'
+    OPENIMAGES = '/home/jupyter/mnt/datasets/OPEN_IMAGES'
     CITYSCAPES = ''
     JETS = ''
     VISUAL_GENOME = 'D:/Documents/datasets/vg'
@@ -44,10 +44,10 @@ class args(object):
     save_interval = 50000
     gpu = 0
     multigpu = True
-    dataset = Datasets.VISUAL_GENOME
-    dataset_path = DatasetPaths.VISUAL_GENOME
-    #dataset = Datasets.OPENIMAGES
-    #dataset_path = DatasetPaths.OPENIMAGES
+    #dataset = Datasets.VISUAL_GENOME
+    #dataset_path = DatasetPaths.VISUAL_GENOME
+    dataset = Datasets.OPENIMAGES
+    dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
 
     # GAN params

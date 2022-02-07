@@ -192,7 +192,7 @@ class OpenImages(BaseDataset):
     [1] https://storage.googleapis.com/openimages/web/factsfigures.html
 
     """
-    files = {"train": "train", "test": "test", "val": "validation"}
+    files = {"train": "train_0", "test": "train_0", "val": "train_0"}
 
     def __init__(self, root=os.path.join(DIR, 'data/openimages'), mode='train', crop_size=256, 
         normalize=False, **kwargs):
