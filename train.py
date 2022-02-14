@@ -13,7 +13,7 @@ import os, glob, time, datetime
 import logging, pickle, argparse
 import functools, itertools
 
-from tqdm import tqdm, trange
+from tqdm.auto import tqdm, trange
 from collections import defaultdict
 
 import torch
