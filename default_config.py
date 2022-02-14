@@ -43,11 +43,11 @@ class args(object):
     log_interval = 1000
     save_interval = 50000
     gpu = 0
-    multigpu = True
-    #dataset = Datasets.VISUAL_GENOME
-    #dataset_path = DatasetPaths.VISUAL_GENOME
-    dataset = Datasets.OPENIMAGES
-    dataset_path = DatasetPaths.OPENIMAGES
+    multigpu = False
+    dataset = Datasets.VISUAL_GENOME
+    dataset_path = DatasetPaths.VISUAL_GENOME
+    #dataset = Datasets.OPENIMAGES
+    #dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
 
     # GAN params
