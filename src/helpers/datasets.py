@@ -208,6 +208,10 @@ class OpenImages(BaseDataset):
         self.imgs = glob.glob(os.path.join(data_dir, '*.jpg'))
         self.imgs += glob.glob(os.path.join(data_dir, '*.png'))
 
+        # !!! This is for training a small part of dataset
+        # !!! REMOVE WHEN TRAIN A FULL DATASET
+        self.imgs = self.imgs[:5000 if mode == 'train' else 2000]
+
         self.crop_size = crop_size
         self.image_dims = (3, self.crop_size, self.crop_size)
         self.scale_min = SCALE_MIN
