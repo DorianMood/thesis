@@ -37,17 +37,17 @@ class args(object):
     """
     name = 'hific_v0.1'
     silent = True
-    n_epochs = 8
+    n_epochs = 3
     n_steps = 1e6
     batch_size = 8
     log_interval = 1000
-    save_interval = 50000
+    save_interval = 30000
     gpu = 0
     multigpu = False
-    dataset = Datasets.VISUAL_GENOME
-    dataset_path = DatasetPaths.VISUAL_GENOME
-    #dataset = Datasets.OPENIMAGES
-    #dataset_path = DatasetPaths.OPENIMAGES
+    #dataset = Datasets.VISUAL_GENOME
+    #dataset_path = DatasetPaths.VISUAL_GENOME
+    dataset = Datasets.OPENIMAGES
+    dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
 
     # GAN params
