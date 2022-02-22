@@ -165,7 +165,6 @@ assets
 data
 experiments
 *.pt
-*.pth
 images
 notebooks
 realesrgan/inputs
