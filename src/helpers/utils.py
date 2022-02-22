@@ -89,7 +89,7 @@ def setup_generic_signature(args, special_info):
         args.name = '{}_{}_{}'.format(args.dataset, special_info, time_signature)
 
     print(args.name)
-    args.snapshot = os.path.join('experiments', args.name)
+    args.snapshot = os.path.join(args.experiments, args.name)
     args.checkpoints_save = os.path.join(args.snapshot, 'checkpoints')
     args.figures_save = os.path.join(args.snapshot, 'figures')
     args.storage_save = os.path.join(args.snapshot, 'storage')
