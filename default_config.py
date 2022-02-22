@@ -23,7 +23,7 @@ class Datasets(object):
     VISUAL_GENOME = 'vg'
 
 class DatasetPaths(object):
-    OPENIMAGES = '/home/jupyter/mnt/datasets/OPEN_IMAGES'
+    OPENIMAGES = '/content/OPEN_IMAGES'
     CITYSCAPES = ''
     JETS = ''
     VISUAL_GENOME = 'D:/Documents/datasets/vg'
