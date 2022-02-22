@@ -49,6 +49,8 @@ class args(object):
     dataset = Datasets.OPENIMAGES
     dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
+    
+    experiments = 'experiments'
 
     # GAN params
     discriminator_steps = 0
