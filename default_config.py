@@ -37,11 +37,11 @@ class args(object):
     """
     name = 'hific_v0.1'
     silent = True
-    n_epochs = 3
+    n_epochs = 1
     n_steps = 1e6
     batch_size = 8
     log_interval = 1000
-    save_interval = 30000
+    save_interval = 50000
     gpu = 0
     multigpu = False
     #dataset = Datasets.VISUAL_GENOME
