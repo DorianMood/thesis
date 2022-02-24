@@ -44,10 +44,10 @@ class args(object):
     save_interval = 50000
     gpu = 0
     multigpu = False
-    #dataset = Datasets.VISUAL_GENOME
-    #dataset_path = DatasetPaths.VISUAL_GENOME
-    dataset = Datasets.OPENIMAGES
-    dataset_path = DatasetPaths.OPENIMAGES
+    dataset = Datasets.VISUAL_GENOME
+    dataset_path = DatasetPaths.VISUAL_GENOME
+    #dataset = Datasets.OPENIMAGES
+    #dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
     
     experiments = 'experiments'
@@ -60,7 +60,7 @@ class args(object):
 
     # Architecture params - defaults correspond to Table 3a) of [1]
     latent_channels = 220
-    n_residual_blocks = 9           # Authors use 9 blocks, performance saturates at 5
+    n_residual_blocks = 7           # Authors use 9 blocks, performance saturates at 5
     lambda_B = 2**(-4)              # Loose rate
     k_M = 0.075 * 2**(-5)           # Distortion
     k_P = 1.                        # Perceptual loss

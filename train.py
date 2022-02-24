@@ -8,6 +8,7 @@ python3 train.py -h
 [1] Mentzer et. al., "High-Fidelity Generative Image Compression", 
     arXiv:2006.09965 (2020).
 """
+from ast import arg
 import numpy as np
 import os, glob, time, datetime
 import logging, pickle, argparse
@@ -61,10 +62,15 @@ def optimize_compression_loss(compression_loss, amortization_opt, hyperlatent_li
     amortization_opt.zero_grad()
     hyperlatent_likelihood_opt.zero_grad()
 
+def optimize_amortization_loss(compression_loss, amortization_opt):
+    compression_loss.backward()
+    amortization_opt.step()
+    amortization_opt.zero_grad()
+
 def test(args, model, epoch, idx, data, test_data, test_bpp, device, epoch_test_loss, storage, best_test_loss, 
          start_time, epoch_start_time, logger, train_writer, test_writer):
 
-    model.eval()  
+    model.eval()
     with torch.no_grad():
         data = data.to(device, dtype=torch.float)
 
@@ -99,23 +105,13 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
     test_writer = SummaryWriter(os.path.join(args.tensorboard_runs, 'test'))
     storage, storage_test = model.storage_train, model.storage_test
 
-    amortization_opt, hyperlatent_likelihood_opt = optimizers['amort'], optimizers['hyper']
+    if args.generator_only:
+        amortization_opt = optimizers['amort']
+    else:
+        amortization_opt, hyperlatent_likelihood_opt = optimizers['amort'], optimizers['hyper']
+    
     if model.use_discriminator is True:
         disc_opt = optimizers['disc']
-
-
-    # Upsample netwok
-    # Upsampler
-
-    #block = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64)
-    #upsampler = RealESRGANer(
-    #    scale=4,
-    #    model_path='realesrgan/experiments/pretrained_models/RealESRGAN_x4plus.pth',
-    #    model=block,
-    #    tile=False,
-    #    tile_pad=10,
-    #    pre_pad=0,
-    #    half=True)
 
     for epoch in trange(args.n_epochs, desc='Epoch'):
 
@@ -126,6 +122,9 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
             ckpt_path = utils.save_model(model, optimizers, mean_epoch_loss, epoch, device, args=args, logger=logger)
         
         model.train()
+        if args.generator_only:
+            model.Encoder.train(False)
+            model.Hyperprior.train(False)
 
         for idx, (data, bpp) in enumerate(tqdm(train_loader, desc='Train'), 0):
 
@@ -139,7 +138,10 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
                     disc_loss = losses['disc']
 
                     if train_generator is True:
-                        optimize_compression_loss(compression_loss, amortization_opt, hyperlatent_likelihood_opt)
+                        if args.generator_only:
+                            optimize_amortization_loss(compression_loss, amortization_opt)
+                        else:
+                            optimize_compression_loss(compression_loss, amortization_opt, hyperlatent_likelihood_opt)
                         train_generator = False
                     else:
                         optimize_loss(disc_loss, disc_opt)
@@ -154,7 +156,10 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
                     # Rate, distortion, perceptual only
                     losses = model(data, train_generator=True)
                     compression_loss = losses['compression']
-                    optimize_compression_loss(compression_loss, amortization_opt, hyperlatent_likelihood_opt)
+                    if args.generator_only:
+                        optimize_amortization_loss(compression_loss, amortization_opt)
+                    else:
+                        optimize_compression_loss(compression_loss, amortization_opt, hyperlatent_likelihood_opt)
 
             except KeyboardInterrupt:
                 # Note: saving not guaranteed!
@@ -185,10 +190,14 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
                     pickle.dump(storage, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
                 model.train()
+                if args.generator_only:
+                    model.Encoder.train(False)
+                    model.Hyperprior.train(False)
 
                 # LR scheduling
                 utils.update_lr(args, amortization_opt, model.step_counter, logger)
-                utils.update_lr(args, hyperlatent_likelihood_opt, model.step_counter, logger)
+                if not args.generator_only:
+                    utils.update_lr(args, hyperlatent_likelihood_opt, model.step_counter, logger)
                 if model.use_discriminator is True:
                     utils.update_lr(args, disc_opt, model.step_counter, logger)
 
@@ -262,6 +271,7 @@ if __name__ == '__main__':
     warmstart_args = parser.add_argument_group("Warmstart options")
     warmstart_args.add_argument("-warmstart", "--warmstart", help="Warmstart adversarial training from autoencoder + hyperprior ckpt.", action="store_true")
     warmstart_args.add_argument("-ckpt", "--warmstart_ckpt", default=None, help="Path to autoencoder + hyperprior ckpt.")
+    warmstart_args.add_argument("-generator", "--generator_only", help="Train only Generator part (Encoder and Hyperprior are fixed).", action="store_true")
 
     cmd_args = parser.parse_args()
 
@@ -274,7 +284,7 @@ if __name__ == '__main__':
         args = hific_args
 
     start_time = time.time()
-    device = utils.get_device()
+    device = torch.device("cpu") # utils.get_device()
 
     # Override default arguments from config file with provided command line arguments
     dictify = lambda x: dict((n, getattr(x, n)) for n in dir(x) if not (n.startswith('__') or 'logger' in n))
