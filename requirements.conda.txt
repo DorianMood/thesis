@@ -11,5 +11,5 @@ tqdm
 tensorboard
 scipy
 autograd
-scikit-image==0.17.2
+scikit-image
 attrdict
