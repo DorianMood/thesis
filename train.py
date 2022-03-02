@@ -125,6 +125,8 @@ def train(args, model, train_loader, test_loader, device, logger, optimizers):
         if args.generator_only:
             model.Encoder.train(False)
             model.Hyperprior.train(False)
+            for p in model.Encoder.parameters():
+                p.requires_grad = False
 
         for idx, (data, bpp) in enumerate(tqdm(train_loader, desc='Train'), 0):
 
