@@ -98,14 +98,14 @@ def load_and_decompress(model, compressed_format_path, out_path):
 
     return reconstruction
 
-def compress_and_decompress(args):
+def compress_and_decompress(args, cuda: bool = True):
 
     # Reproducibility
     make_deterministic()
     perceptual_loss_fn = ps.PerceptualLoss(model='net-lin', net='alex', use_gpu=torch.cuda.is_available())
 
     # Load model
-    device = utils.get_device()
+    device = utils.get_device(cuda)
     logger = utils.logger_setup(logpath=os.path.join(args.image_dir, 'logs'), filepath=os.path.abspath(__file__))
     loaded_args, model, _ = utils.load_model(args.ckpt_path, logger, device, model_mode=ModelModes.EVALUATION,
         current_args_d=None, prediction=True, strict=False)

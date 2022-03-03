@@ -1,43 +1,14 @@
+
 import os
 import time
-from xmlrpc.client import Boolean
-import torch
 from attrdict import AttrDict
-from ..default_config import ModelTypes, mse_lpips_args
-from helpers import datasets, utils
-from skimage.metrics import structural_similarity as ssim, peak_signal_noise_ratio as psnr
+import torch
 
-def process_batch_psnr(input1: torch.Tensor, input2: torch.Tensor):
-    assert input1.shape == input2.shape
-    N, C, H, W = input1.shape
-
-    images1 = input1.cpu().detach().transpose(1, 3).numpy()
-    images2 = input2.cpu().detach().transpose(1, 3).numpy()
-
-    psnr_batch = []
-    for i in range(N):
-        # Calculate metric for each image
-        psnr_batch.append(psnr(images1[i], images2[i]))
-    psnr_batch = torch.tensor(psnr_batch, device=input1.device)
-
-    return psnr_batch
+from default_config import ModelTypes, mse_lpips_args
+from src.helpers import datasets, utils
 
 
-def process_batch_ssim(input1: torch.Tensor, input2: torch.Tensor):
-    assert input1.shape == input2.shape
-    N, C, H, W = input1.shape
-
-    images1 = input1.cpu().detach().transpose(1, 3).numpy()
-    images2 = input2.cpu().detach().transpose(1, 3).numpy()
-
-    ssim_batch = []
-    for i in range(N):
-        ssim_batch.append(ssim(images1[i], images2[i], multichannel=True))
-    ssim_batch = torch.tensor(ssim_batch, device=input1.device)
-
-    return ssim_batch
-    
-def eval(checkpoint_path: str, cpu: Boolean = False):
+def eval(checkpoint_path: str, cpu: bool = False):
     
     cmd_args = AttrDict({
         "model_type": ModelTypes.COMPRESSION,
@@ -77,7 +48,7 @@ def eval(checkpoint_path: str, cpu: Boolean = False):
 
     assert args.warmstart_ckpt is not None, 'Must provide checkpoint to previously trained AE/HP model.'
     # TODO : Define a custom model type and pass it through these frunctions
-    args, model, optimizers = utils.load_model(args.warmstart_ckpt, logger, device, 
+    args, model, _ = utils.load_model(args.warmstart_ckpt, logger, device, 
         model_type=args.model_type, current_args_d=dictify(args), strict=False, prediction=True)
 
     val_loader = datasets.get_dataloaders(args.dataset,
@@ -98,7 +69,4 @@ def eval(checkpoint_path: str, cpu: Boolean = False):
     print('Validation done.')
 
 if __name__ == '__main__':
-    image1, image2 = torch.rand(8, 3, 128, 128), torch.rand(8, 3, 128, 128)
-    print(f'Random images SSIM = {process_batch_ssim(image1, image2).mean()}, PSNR = {process_batch_psnr(image1, image2).mean()}')
-
-    eval(r'D:\Documents\project\thesis\experiments\hific_hi.pt')
+    eval(r'D:\Documents\project\thesis\experiments\hific_low.pt', True)
