@@ -122,6 +122,8 @@ def compress_and_decompress(args, cuda: bool = True):
     model.Hyperprior.hyperprior_entropy_model.build_tables()
     logger.info('All tables built.')
 
+    # Load deblocking model
+    deblocking_model = utils.load_deblocking_model(args.deblocking_checkpoint)
 
     eval_loader = datasets.get_dataloaders('evaluation', root=args.image_dir, batch_size=args.batch_size,
                                            logger=logger, shuffle=False, normalize=args.normalize_input_image)
@@ -131,6 +133,7 @@ def compress_and_decompress(args, cuda: bool = True):
     output_filenames_total = list()
     bpp_total, q_bpp_total, LPIPS_total = torch.Tensor(N), torch.Tensor(N), torch.Tensor(N)
     MS_SSIM_total, PSNR_total = torch.Tensor(N), torch.Tensor(N)
+    deblocking_MS_SSIM_total, deblocking_PSNR_total = torch.Tensor(N), torch.Tensor(N)
     max_value = 255.
     MS_SSIM_func = metrics.MS_SSIM(data_range=max_value)
     utils.makedirs(args.output_dir) 
@@ -166,12 +169,20 @@ def compress_and_decompress(args, cuda: bool = True):
 
             perceptual_loss = perceptual_loss_fn.forward(reconstruction, data, normalize=True)
 
+            deblocked_images = deblocking_model(reconstruction)
+
             if args.metrics is True:
                 # [0., 1.] -> [0., 255.]
                 psnr = metrics.psnr(reconstruction.cpu().numpy() * max_value, data.cpu().numpy() * max_value, max_value)
                 ms_ssim = MS_SSIM_func(reconstruction * max_value, data * max_value)
                 PSNR_total[n:n + B] = torch.Tensor(psnr)
                 MS_SSIM_total[n:n + B] = ms_ssim.data
+
+                # Deblocking metrics
+                deblocking_psnr = metrics.psnr(deblocked_images.cpu().numpy() * max_value, data.cpu().numpy() * max_value, max_value)
+                deblocking_ms_ssim = MS_SSIM_func(deblocked_images * max_value, data * max_value)
+                deblocking_PSNR_total[n:n + B] = torch.Tensor(deblocking_psnr)
+                deblocking_MS_SSIM_total[n:n + B] = deblocking_ms_ssim.data
 
             for subidx in range(reconstruction.shape[0]):
                 if B > 1:
@@ -197,6 +208,8 @@ def compress_and_decompress(args, cuda: bool = True):
     if args.metrics is True:
         df['PSNR'] = PSNR_total.cpu().numpy()
         df['MS_SSIM'] = MS_SSIM_total.cpu().numpy()
+        df['PSNR_deblocked'] = deblocking_PSNR_total.cpu().numpy()
+        df['MS_SSIM_deblocked'] = deblocking_MS_SSIM_total.cpu().numpy()
 
     df_path = os.path.join(args.output_dir, 'compression_metrics.h5')
     df.to_hdf(df_path, key='df')
@@ -224,15 +237,13 @@ def main(**kwargs):
     parser.add_argument("-rc", "--reconstruct", help="Reconstruct input image without compression.", action="store_true")
     parser.add_argument("-save", "--save", help="Save compressed format to disk.", action="store_true")
     parser.add_argument("-metrics", "--metrics", help="Evaluate compression metrics.", action="store_true")
+    parser.add_argument("-d", "--deblocking_checkpoint", help="Use deblocking network on top of compression network with specified checkpoint.", type=str, required=True)
     args = parser.parse_args()
 
     input_images = glob.glob(os.path.join(args.image_dir, '*.jpg'))
     input_images += glob.glob(os.path.join(args.image_dir, '*.png'))
 
     assert len(input_images) > 0, 'No valid image files found in supplied directory!'
-
-    print('Input images')
-    pprint(input_images)
 
     compress_and_decompress(args)
 

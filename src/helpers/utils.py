@@ -12,6 +12,8 @@ import itertools
 from collections import OrderedDict
 from torchvision.utils import save_image
 
+from deblocking.CNNs.mymodel import ARDenseNet
+
 META_FILENAME = "metadata.json"
 
 class Struct:
@@ -261,6 +263,12 @@ def load_model(save_path, logger, device, model_type=None, model_mode=None, curr
         model.train()
 
     return args, model, optimizers
+
+
+def load_deblocking_model(checkpoint_path: str, device: str = 'cuda'):
+    model = ARDenseNet()
+    model.load_state_dict(torch.load(checkpoint_path))
+    return model.to(torch.device(device))
 
 
 def logger_setup(logpath, filepath, package_files=[]):
