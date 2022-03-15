@@ -44,10 +44,10 @@ class args(object):
     save_interval = 50000
     gpu = 0
     multigpu = False
-    dataset = Datasets.VISUAL_GENOME
-    dataset_path = DatasetPaths.VISUAL_GENOME
-    #dataset = Datasets.OPENIMAGES
-    #dataset_path = DatasetPaths.OPENIMAGES
+    #dataset = Datasets.VISUAL_GENOME
+    #dataset_path = DatasetPaths.VISUAL_GENOME
+    dataset = Datasets.OPENIMAGES
+    dataset_path = DatasetPaths.OPENIMAGES
     shuffle = True
     
     experiments = 'experiments'

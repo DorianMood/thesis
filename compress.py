@@ -131,6 +131,7 @@ def compress_and_decompress(args, cuda: bool = True):
     n, N = 0, len(eval_loader.dataset)
     input_filenames_total = list()
     output_filenames_total = list()
+    deblocked_filenames_total = list()
     bpp_total, q_bpp_total, LPIPS_total = torch.Tensor(N), torch.Tensor(N), torch.Tensor(N)
     MS_SSIM_total, PSNR_total = torch.Tensor(N), torch.Tensor(N)
     deblocking_MS_SSIM_total, deblocking_PSNR_total = torch.Tensor(N), torch.Tensor(N)
@@ -194,12 +195,16 @@ def compress_and_decompress(args, cuda: bool = True):
                 torchvision.utils.save_image(reconstruction[subidx], fname, normalize=True)
                 output_filenames_total.append(fname)
 
+                fname = os.path.join(args.output_dir, "{}_RECON_DEBLOCK_{:.3f}bpp.png".format(filenames[subidx], q_bpp_per_im))
+                torchvision.utils.save_image(deblocked_images[subidx], fname, normalize=True)
+                deblocked_filenames_total.append(fname)
+
             bpp_total[n:n + B] = bpp.data
             q_bpp_total[n:n + B] = q_bpp.data if type(q_bpp) == torch.Tensor else q_bpp
             LPIPS_total[n:n + B] = perceptual_loss.data
             n += B
 
-    df = pd.DataFrame([input_filenames_total, output_filenames_total]).T
+    df = pd.DataFrame([input_filenames_total, output_filenames_total, deblocked_filenames_total]).T
     df.columns = ['input_filename', 'output_filename']
     df['bpp_original'] = bpp_total.cpu().numpy()
     df['q_bpp'] = q_bpp_total.cpu().numpy()
