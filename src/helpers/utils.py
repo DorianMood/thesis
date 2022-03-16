@@ -266,8 +266,8 @@ def load_model(save_path, logger, device, model_type=None, model_mode=None, curr
     return args, model, optimizers
 
 
-def load_enhancement_model(checkpoint_path: str, device: str = 'cuda'):
-    model = DnCNN()
+def load_enhancement_model(checkpoint_path: str, device: str = 'cuda', model: torch.nn.Module = None):
+    model = model or DnCNN()
     model.load_state_dict(torch.load(checkpoint_path))
     return model.to(torch.device(device))
 
