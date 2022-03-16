@@ -123,7 +123,7 @@ def compress_and_decompress(args, cuda: bool = True):
     logger.info('All tables built.')
 
     # Load deblocking model
-    deblocking_model = utils.load_deblocking_model(args.deblocking_checkpoint)
+    deblocking_model = utils.load_enhancement_model(args.deblocking_checkpoint)
 
     eval_loader = datasets.get_dataloaders('evaluation', root=args.image_dir, batch_size=args.batch_size,
                                            logger=logger, shuffle=False, normalize=args.normalize_input_image)
@@ -131,10 +131,10 @@ def compress_and_decompress(args, cuda: bool = True):
     n, N = 0, len(eval_loader.dataset)
     input_filenames_total = list()
     output_filenames_total = list()
-    deblocked_filenames_total = list()
+    enhanced_filenames_total = list()
     bpp_total, q_bpp_total, LPIPS_total = torch.Tensor(N), torch.Tensor(N), torch.Tensor(N)
     MS_SSIM_total, PSNR_total = torch.Tensor(N), torch.Tensor(N)
-    deblocking_MS_SSIM_total, deblocking_PSNR_total = torch.Tensor(N), torch.Tensor(N)
+    enhanced_MS_SSIM_total, enhanced_PSNR_total = torch.Tensor(N), torch.Tensor(N)
     max_value = 255.
     MS_SSIM_func = metrics.MS_SSIM(data_range=max_value)
     utils.makedirs(args.output_dir) 
@@ -170,7 +170,7 @@ def compress_and_decompress(args, cuda: bool = True):
 
             perceptual_loss = perceptual_loss_fn.forward(reconstruction, data, normalize=True)
 
-            deblocked_images = deblocking_model(reconstruction)
+            enhanced_images = deblocking_model(reconstruction)
 
             if args.metrics is True:
                 # [0., 1.] -> [0., 255.]
@@ -180,10 +180,10 @@ def compress_and_decompress(args, cuda: bool = True):
                 MS_SSIM_total[n:n + B] = ms_ssim.data
 
                 # Deblocking metrics
-                deblocking_psnr = metrics.psnr(deblocked_images.cpu().numpy() * max_value, data.cpu().numpy() * max_value, max_value)
-                deblocking_ms_ssim = MS_SSIM_func(deblocked_images * max_value, data * max_value)
-                deblocking_PSNR_total[n:n + B] = torch.Tensor(deblocking_psnr)
-                deblocking_MS_SSIM_total[n:n + B] = deblocking_ms_ssim.data
+                enhanced_psnr = metrics.psnr(enhanced_images.cpu().numpy() * max_value, data.cpu().numpy() * max_value, max_value)
+                enhanced_ms_ssim = MS_SSIM_func(enhanced_images * max_value, data * max_value)
+                enhanced_PSNR_total[n:n + B] = torch.Tensor(enhanced_psnr)
+                enhanced_MS_SSIM_total[n:n + B] = enhanced_ms_ssim.data
 
             for subidx in range(reconstruction.shape[0]):
                 if B > 1:
@@ -195,17 +195,17 @@ def compress_and_decompress(args, cuda: bool = True):
                 torchvision.utils.save_image(reconstruction[subidx], fname, normalize=True)
                 output_filenames_total.append(fname)
 
-                fname = os.path.join(args.output_dir, "{}_RECON_DEBLOCK_{:.3f}bpp.png".format(filenames[subidx], q_bpp_per_im))
-                torchvision.utils.save_image(deblocked_images[subidx], fname, normalize=True)
-                deblocked_filenames_total.append(fname)
+                fname = os.path.join(args.output_dir, "{}_RECON_ENHANCE_{:.3f}bpp.png".format(filenames[subidx], q_bpp_per_im))
+                torchvision.utils.save_image(enhanced_images[subidx], fname, normalize=True)
+                enhanced_filenames_total.append(fname)
 
             bpp_total[n:n + B] = bpp.data
             q_bpp_total[n:n + B] = q_bpp.data if type(q_bpp) == torch.Tensor else q_bpp
             LPIPS_total[n:n + B] = perceptual_loss.data
             n += B
 
-    df = pd.DataFrame([input_filenames_total, output_filenames_total, deblocked_filenames_total]).T
-    df.columns = ['input_filename', 'output_filename']
+    df = pd.DataFrame([input_filenames_total, output_filenames_total, enhanced_filenames_total]).T
+    df.columns = ['input_filename', 'output_filename', 'enhanced_output_filename']
     df['bpp_original'] = bpp_total.cpu().numpy()
     df['q_bpp'] = q_bpp_total.cpu().numpy()
     df['LPIPS'] = LPIPS_total.cpu().numpy()
@@ -213,8 +213,8 @@ def compress_and_decompress(args, cuda: bool = True):
     if args.metrics is True:
         df['PSNR'] = PSNR_total.cpu().numpy()
         df['MS_SSIM'] = MS_SSIM_total.cpu().numpy()
-        df['PSNR_deblocked'] = deblocking_PSNR_total.cpu().numpy()
-        df['MS_SSIM_deblocked'] = deblocking_MS_SSIM_total.cpu().numpy()
+        df['PSNR_deblocked'] = enhanced_PSNR_total.cpu().numpy()
+        df['MS_SSIM_deblocked'] = enhanced_MS_SSIM_total.cpu().numpy()
 
     df_path = os.path.join(args.output_dir, 'compression_metrics.h5')
     df.to_hdf(df_path, key='df')

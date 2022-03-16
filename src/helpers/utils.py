@@ -11,6 +11,7 @@ import itertools
 
 from collections import OrderedDict
 from torchvision.utils import save_image
+from KAIR.models.network_dncnn import DnCNN
 
 from deblocking.CNNs.mymodel import ARDenseNet
 
@@ -265,8 +266,8 @@ def load_model(save_path, logger, device, model_type=None, model_mode=None, curr
     return args, model, optimizers
 
 
-def load_deblocking_model(checkpoint_path: str, device: str = 'cuda'):
-    model = ARDenseNet()
+def load_enhancement_model(checkpoint_path: str, device: str = 'cuda'):
+    model = DnCNN()
     model.load_state_dict(torch.load(checkpoint_path))
     return model.to(torch.device(device))
 
