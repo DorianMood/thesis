@@ -11,11 +11,24 @@ import itertools
 
 from collections import OrderedDict
 from torchvision.utils import save_image
-from KAIR.models.network_dncnn import DnCNN
+from KAIR.models.network_dncnn import DnCNN, IRCNN
 
 from deblocking.CNNs.mymodel import ARDenseNet
 
 META_FILENAME = "metadata.json"
+
+enhancement_networks = (
+    'DnCNN',
+    #'DPIR',
+    #'FDCNN',
+    'IRCNN'
+)
+enhancement_networks_mapping = {
+    'DnCNN': DnCNN,
+    #'DIPR': ,
+    #'FDCNN': ,
+    'IRCNN': IRCNN
+}
 
 class Struct:
     def __init__(self, **entries):
@@ -266,10 +279,15 @@ def load_model(save_path, logger, device, model_type=None, model_mode=None, curr
     return args, model, optimizers
 
 
-def load_enhancement_model(checkpoint_path: str, device: str = 'cuda', model: torch.nn.Module = None):
-    model = model or DnCNN()
-    model.load_state_dict(torch.load(checkpoint_path))
-    return model.to(torch.device(device))
+def load_enhancement_model(checkpoint_path: str, device: str = 'cuda', model_type: str = None):
+    if not model_type or model_type == 'DnCNN':
+        model = DnCNN(in_c=3, out_c=3, nc=64, nb=20, act_mode='R')
+        model.load_state_dict(torch.load(checkpoint_path))
+    elif model_type == 'IRCNN':
+        noise_level = 10
+        model = IRCNN(in_nc=3, out_nc=3)
+        model.load_state_dict(torch.load(checkpoint_path)[f'{noise_level}'])
+    return model.to(device)
 
 
 def logger_setup(logpath, filepath, package_files=[]):

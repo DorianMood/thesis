@@ -19,9 +19,11 @@ from src.compression import compression_utils
 from src.loss.perceptual_similarity import perceptual_loss as ps
 from default_config import hific_args, mse_lpips_args, directories, ModelModes, ModelTypes
 from default_config import args as default_args
+from src.helpers.utils import enhancement_networks
 
 File = namedtuple('File', ['original_path', 'compressed_path',
                            'compressed_num_bytes', 'bpp'])
+
 
 def make_deterministic(seed=42):
 
@@ -242,7 +244,8 @@ def main(**kwargs):
     parser.add_argument("-rc", "--reconstruct", help="Reconstruct input image without compression.", action="store_true")
     parser.add_argument("-save", "--save", help="Save compressed format to disk.", action="store_true")
     parser.add_argument("-metrics", "--metrics", help="Evaluate compression metrics.", action="store_true")
-    parser.add_argument("-d", "--deblocking_checkpoint", help="Use deblocking network on top of compression network with specified checkpoint.", type=str, required=True)
+    parser.add_argument("-d", "--deblocking_checkpoint", help="Use enhancement network on top of compression network with specified checkpoint.", type=str, required=True)
+    parser.add_argument("-en", "--enhancement_network", help="Use enhancement network on top of compression network with specified checkpoint.", choices=enhancement_networks, required=True)
     args = parser.parse_args()
 
     input_images = glob.glob(os.path.join(args.image_dir, '*.jpg'))
