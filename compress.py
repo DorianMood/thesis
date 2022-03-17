@@ -125,7 +125,7 @@ def compress_and_decompress(args, cuda: bool = True):
     logger.info('All tables built.')
 
     # Load deblocking model
-    deblocking_model = utils.load_enhancement_model(args.deblocking_checkpoint)
+    deblocking_model = utils.load_enhancement_model(args.deblocking_checkpoint, model_type=args.en)
 
     eval_loader = datasets.get_dataloaders('evaluation', root=args.image_dir, batch_size=args.batch_size,
                                            logger=logger, shuffle=False, normalize=args.normalize_input_image)
