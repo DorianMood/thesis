@@ -14,6 +14,7 @@ from torchvision.utils import save_image
 from KAIR.models.network_dncnn import DnCNN, IRCNN
 
 from deblocking.CNNs.mymodel import ARDenseNet
+from deblocking.MultiScale.MS_model import IntraDeblocking
 
 META_FILENAME = "metadata.json"
 
@@ -21,7 +22,8 @@ enhancement_networks = (
     'DnCNN',
     #'DPIR',
     #'FDCNN',
-    'IRCNN'
+    'IRCNN',
+    'MS'
 )
 enhancement_networks_mapping = {
     'DnCNN': DnCNN,
@@ -287,6 +289,9 @@ def load_enhancement_model(checkpoint_path: str, device: str = 'cuda', model_typ
         noise_level = 10
         model = IRCNN(in_nc=3, out_nc=3)
         model.load_state_dict(torch.load(checkpoint_path)[f'{noise_level}'])
+    elif model_type == 'MS':
+        model = IntraDeblocking()
+        model.load_state_dict(torch.load(checkpoint_path))
     return model.to(device)
 
 
