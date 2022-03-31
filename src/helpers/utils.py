@@ -26,7 +26,8 @@ enhancement_networks = (
     # 'DPIR',
     # 'FDCNN',
     'IRCNN',
-    'MS'
+    'MS',
+    'FBCNN'
 )
 enhancement_networks_mapping = {
     'DnCNN': DnCNN,
